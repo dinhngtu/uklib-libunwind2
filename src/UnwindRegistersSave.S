@@ -90,7 +90,12 @@ DEFINE_LIBUNWIND_FUNCTION(__unw_getcontext)
   movq  %r13,104(PTR)
   movq  %r14,112(PTR)
   movq  %r15,120(PTR)
-  movq  (%rsp),TMP
+  push %rax
+  movq %rbp, %rax
+  addq $8, %rax
+  movq (%rax), %rax
+  movq  %rax, TMP
+  pop %rax
   movq  TMP,128(PTR) # store return address as rip
   # skip rflags
   # skip cs
@@ -771,7 +776,7 @@ DEFINE_LIBUNWIND_FUNCTION(__unw_getcontext)
 @
 @ On entry:
 @  thread_state pointer is in r0
-@ 
+@
 @ Per EHABI #4.7 this only saves the core integer registers.
 @ EHABI #7.4.5 notes that in general all VRS registers should be restored
 @ however this is very hard to do for VFP registers because it is unknown
