@@ -1,0 +1,40 @@
+$(eval $(call addlib_s,libunwind,$(CONFIG_LIBUNWIND)))
+
+ifeq ($(CONFIG_LIBUNWIND),y)
+ifneq ($(CONFIG_LIBCOMPILER_RT),y)
+$(error Require libcompiler_rt)
+endif
+endif
+
+CINCLUDES-$(CONFIG_LIBUNWIND) += -I$(LIBUNWIND_BASE)/include
+CXXINCLUDES-$(CONFIG_LIBUNWIND) += -I$(LIBUNWIND_BASE)/include
+
+LIBUNWIND_CINCLUDES-y   += -I$(LIBUNWIND_BASE)/src
+LIBUNWIND_CXXINCLUDES-y += -I$(LIBUNWIND_BASE)/src
+
+CONFIG_FLAGS   += -D _LIBUNWIND_HAS_NO_THREADS  -D __ELF__  -D _LIBUNWIND_IS_NATIVE_ONLY		\
+		  -D _LIBUNWIND_SUPPORT_DWARF_UNWIND -D _LIBUNWIND_IS_BAREMETAL
+
+ifdef CONFIG_CXX_THREADS
+else
+CONFIG_FLAGS += -D_LIBUNWIND_HAS_NO_THREADS
+endif
+
+LIBUNWIND_CFLAGS-y      +=  $(CONFIG_FLAGS) -std=c99
+LIBUNWIND_CXXFLAGS-y    +=  $(CONFIG_FLAGS) -std=c++11
+
+LIBUNWIND_SUPPRESS_FLAGS += -Wno-unused-parameter -Wno-maybe-uninitialized
+LIBUNWIND_CFLAGS-y   += $(LIBUNWIND_SUPPRESS_FLAGS)
+LIBUNWIND_CXXFLAGS-y += $(LIBUNWIND_SUPPRESS_FLAGS)
+
+################################################################################
+# Library sources
+################################################################################
+LIBUNWIND_SRCS-y += $(LIBUNWIND_BASE)/src/libunwind.cpp
+LIBUNWIND_SRCS-y += $(LIBUNWIND_BASE)/src/Unwind-EHABI.cpp
+LIBUNWIND_SRCS-y += $(LIBUNWIND_BASE)/src/Unwind-seh.cpp
+LIBUNWIND_SRCS-y += $(LIBUNWIND_BASE)/src/UnwindLevel1.c
+LIBUNWIND_SRCS-y += $(LIBUNWIND_BASE)/src/UnwindLevel1-gcc-ext.c
+LIBUNWIND_SRCS-y += $(LIBUNWIND_BASE)/src/Unwind-sjlj.c
+LIBUNWIND_SRCS-y += $(LIBUNWIND_BASE)/src/UnwindRegistersRestore.S
+LIBUNWIND_SRCS-y += $(LIBUNWIND_BASE)/src/UnwindRegistersSave.S
